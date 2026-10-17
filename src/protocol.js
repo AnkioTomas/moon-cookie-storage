@@ -26,14 +26,6 @@ export function parseRequest(input, sourceUrl) {
   }
   const check = new URL(input.check);
   const login = new URL(input.login || check.origin);
-  for (const url of [check, login]) {
-    if (
-      url.protocol !== "https:" || url.hostname !== domain.hostname ||
-      url.username || url.password || url.hash
-    ) {
-      throw new Error("登录和检查地址必须是 domain 下的 HTTPS 地址");
-    }
-  }
   if (check.origin !== login.origin) throw new Error("登录和检查地址必须同源");
   const callback = new URL(input.callback || "/api/extension/login", origin);
   if (callback.origin !== origin || callback.username || callback.password || callback.hash) {
