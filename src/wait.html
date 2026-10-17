@@ -7,19 +7,26 @@
     <title>Moon 登录授权</title>
     <link rel="stylesheet" href="wait.css" />
   </head>
-  <body>
+  <body data-phase="loading">
     <main>
-      <h1>Moon 登录授权</h1>
-      <p>请确认以下信息。授权后将打开登录页，每约 2 秒检查一次，
-        并把所选登录凭证加密发送给远程管理。远程管理验证并保存成功后自动关闭登录页和本页。</p>
+      <header>
+        <span class="moon" aria-hidden="true"></span>
+        <div>
+          <p class="eyebrow">Moon Cookie Storage</p>
+          <h1>登录授权</h1>
+        </div>
+      </header>
+      <p class="lead">请核对接收设备和采集范围。确认后才会打开登录页，并加密发送所选凭证。远程管理验证保存成功后，登录页和本页会自动关闭。</p>
       <dl id="details"></dl>
-      <p class="warning">Cookie（含 HttpOnly）和 Storage 可能包含完整账号访问凭证。
-        仅授权你信任的 Moon 设备；端口 9528 不代表身份已验证。
-        HTTP 回调仍存在局域网中间人风险，建议使用 HTTPS。</p>
-      <p id="status" role="status">正在读取授权任务…</p>
-      <button id="start" disabled>授权并打开登录页</button>
-      <button id="retry" hidden>重试</button>
-      <button id="cancel">取消</button>
+      <p class="warning">Cookie（含 HttpOnly）和 Storage 可能包含完整账号访问凭证。仅授权你信任的 Moon 设备；端口 9528 不代表身份已验证。HTTP 回调仍有局域网中间人风险，建议使用 HTTPS。</p>
+      <footer>
+        <p id="status" role="status">正在读取授权任务…</p>
+        <div class="actions">
+          <button id="cancel" class="ghost">取消</button>
+          <button id="retry" class="ghost" hidden>重试</button>
+          <button id="start" class="primary" disabled>授权并打开登录页</button>
+        </div>
+      </footer>
     </main>
     <script type="module" src="wait.js"></script>
   </body>
