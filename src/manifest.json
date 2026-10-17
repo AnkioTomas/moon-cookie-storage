@@ -3,7 +3,7 @@
   "name": "Moon Cookie Storage",
   "version": "0.1.0",
   "description": "Cookie storage extension for Chrome, Edge and Firefox",
-  "permissions": ["cookies", "storage"],
+  "permissions": ["cookies", "storage", "scripting"],
   "host_permissions": ["<all_urls>"],
   "action": {
     "default_title": "Moon Cookie Storage",
@@ -12,5 +12,19 @@
   "background": {
     "service_worker": "background.js",
     "type": "module"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["bridge.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["wait.html"],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ]
 }

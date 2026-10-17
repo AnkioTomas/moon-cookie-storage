@@ -1,0 +1,9 @@
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { margin: 0; padding: 40px 20px; }
+main { max-width: 720px; margin: auto; }
+p { line-height: 1.7; }
+dl { overflow-wrap: anywhere; }
+dt { font-weight: bold; margin-top: 16px; }
+dd { margin: 4px 0 0; }
+.warning { border-inline-start: 4px solid #d99b27; padding: 12px; }
+button { padding: 10px 16px; margin: 8px 8px 0 0; cursor: pointer; }
