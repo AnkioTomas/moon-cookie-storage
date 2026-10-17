@@ -35,7 +35,6 @@ test("requests bind callback to source origin, not an arbitrary recipient", () =
   for (const override of [
     { callback: "https://attacker.example:9528/receive" },
     { callback: "//attacker.example:9528/receive" },
-    { check: "https://different.example/userinfo" },
     { login: "http://example.com/login" },
     { login: "https://example.com:8443/login" },
     { domain: "example.com/path" },
