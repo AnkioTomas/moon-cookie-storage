@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Test
+        run: npm test
+
+      - name: Check version
+        id: ver
+        shell: bash
+        run: |
+          set -euo pipefail
+          PKG="$(node -p "require('./package.json').version")"
+          MANIFEST="$(node -p "require('./src/manifest.json').version")"
+          if [[ "$PKG" != "$MANIFEST" ]]; then
+            echo "::error::package.json ${PKG} 与 src/manifest.json ${MANIFEST} 不一致"
+            exit 1
+          fi
+          if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME#v}" != "$PKG" ]]; then
+            echo "::error::tag ${GITHUB_REF_NAME} 与 package.json ${PKG} 不一致"
+            exit 1
+          fi
+          if [[ ! "$PKG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::版本必须是 MAJOR.MINOR.PATCH：${PKG}"
+            exit 1
+          fi
+          echo "version=${PKG}" >> "$GITHUB_OUTPUT"
+
+      - name: Package
+        run: node scripts/package.mjs
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: moon-cookie-storage-${{ steps.ver.outputs.version }}
+          path: dist/packages/*
+          if-no-files-found: error
+
+      - name: Publish release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cat > release-notes.md <<'EOF'
+          Chrome、Edge 分别加载对应 zip。Firefox 使用 firefox zip，可提交 AMO，或解压后临时载入 manifest.json。
+
+          压缩包根目录就是扩展目录，不要再套一层文件夹。
+          EOF
+          gh release create "$GITHUB_REF_NAME" dist/packages/* \
+            --title "Moon Cookie Storage ${GITHUB_REF_NAME}" \
+            --verify-tag \
+            --notes-file release-notes.md
