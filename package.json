@@ -4,6 +4,7 @@
   "description": "Cross-browser (Chrome / Edge / Firefox) cookie storage extension",
   "type": "module",
   "scripts": {
+    "test": "node --test",
     "build": "node scripts/build.mjs",
     "build:chrome": "node scripts/build.mjs chrome",
     "build:edge": "node scripts/build.mjs edge",
