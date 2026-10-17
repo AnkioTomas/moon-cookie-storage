@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Moon Cookie Storage",
+  "version": "0.1.0",
+  "description": "Cookie storage extension for Chrome, Edge and Firefox",
+  "permissions": ["cookies", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_title": "Moon Cookie Storage",
+    "default_popup": "popup/popup.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  }
+}

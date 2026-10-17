@@ -1,0 +1,13 @@
+{
+  "name": "moon-cookie-storage",
+  "version": "0.1.0",
+  "description": "Cross-browser (Chrome / Edge / Firefox) cookie storage extension",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:chrome": "node scripts/build.mjs chrome",
+    "build:edge": "node scripts/build.mjs edge",
+    "build:firefox": "node scripts/build.mjs firefox"
+  },
+  "private": true
+}
