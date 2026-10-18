@@ -151,7 +151,13 @@ async function poll(job) {
   } catch {
     throw new Error("回调网络请求失败，登录页已保留，可手动重试");
   }
-  if (!response.ok) throw new Error(`远程管理拒绝回调（HTTP ${response.status}），登录页已保留`);
+  if (!response.ok) {
+    const detail = (await response.text().catch(() => "")).trim().slice(0, 300);
+    throw new Error(
+      `远程管理拒绝回调（HTTP ${response.status}），登录页已保留` +
+      (detail ? `：${detail}` : "（服务端未返回错误详情）"),
+    );
+  }
   let ack;
   try {
     ack = await response.json();
