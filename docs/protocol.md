@@ -74,6 +74,7 @@ window.postMessage({
 | `scope` | `cookie`、`local`、`session` 的逗号分隔组合 |
 | `login` | HTTPS 登录页，默认是 check 的 origin；必须与 check 同源 |
 | `check` | 与 domain 对应的 HTTPS 检查接口 |
+| `check_json` | 可选，`{path, ok?, fail?}`：2xx 之外再解析 check 响应（≤64 KiB）的 JSON，按点号路径 `path` 取值；有 `ok` 时值须在其中，有 `fail` 时值不得在其中，取不到值或不是 JSON 都算未登录。用于「一律返回 200、靠 `code` 区分」的接口 |
 | `ticket` | 单次授权的高熵随机密钥材料，32–256 个 base64url 字符 |
 | `callback` | 默认 `/api/extension/login`；只能回调发起页的同源地址 |
 
@@ -86,7 +87,7 @@ window.postMessage({
 检查由登录页的隔离脚本执行 `fetch(check, {credentials:"include", redirect:"manual"})`，
 使用该标签页真实的登录上下文。只有 **2xx 且未重定向** 才采集；
 401、301、302、其他错误状态和网络失败都会继续等待。服务端必须提供适合此语义的
-接口，不能用永远返回 200 的登录页或 SPA 首页作为 check。最终登录真实性仍由 Moon 验证。
+接口，不能用永远返回 200 的登录页或 SPA 首页作为 check；接口一律 200 但 JSON 带登录状态码时，用 `check_json` 判定。最终登录真实性仍由 Moon 验证。
 
 - Cookie 通过扩展 API 获取，包括 HttpOnly，保留 domain/path/secure 等属性；
   范围是**适用于 check URL** 的 Cookie，并使用登录标签页所在的 Cookie 容器。

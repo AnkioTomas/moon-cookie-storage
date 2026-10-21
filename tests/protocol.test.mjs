@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseRequest, encryptPayload, callbackUrl } from "../src/protocol.js";
+import { parseRequest, encryptPayload, callbackUrl, checkJsonPassed } from "../src/protocol.js";
 
 const source = "http://192.168.1.5:9528/settings";
 const ticket = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
@@ -67,4 +67,19 @@ test("GET callback encodes envelope and refuses oversized data", async () => {
   assert.deepEqual(JSON.parse(url.searchParams.get("data")), envelope);
   assert.equal(url.href.includes(ticket), false);
   assert.throws(() => callbackUrl(request, { data: "a".repeat(20_000) }), /GET/);
+});
+
+test("check_json judges login by a JSON field", () => {
+  const rule = parseRequest({ ...input, check_json: { path: "data.code", ok: [200], fail: [401] } }, source).checkJson;
+  assert.equal(checkJsonPassed(rule, '{"data":{"code":200}}'), true);
+  assert.equal(checkJsonPassed(rule, '{"data":{"code":401}}'), false);
+  assert.equal(checkJsonPassed(rule, '{"data":{}}'), false);
+  assert.equal(checkJsonPassed(rule, "<html>"), false);
+  assert.equal(checkJsonPassed(undefined, "<html>"), true);
+  const failOnly = { path: "code", fail: [401, 9996] };
+  assert.equal(checkJsonPassed(failOnly, '{"code":200}'), true);
+  assert.equal(checkJsonPassed(failOnly, '{"code":9996}'), false);
+  assert.equal(parseRequest(input, source).checkJson, undefined);
+  assert.throws(() => parseRequest({ ...input, check_json: { path: "a b", ok: [1] } }, source), /path/);
+  assert.throws(() => parseRequest({ ...input, check_json: { path: "code" } }, source), /ok/);
 });

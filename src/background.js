@@ -1,6 +1,6 @@
 import { api } from "./browser.js";
 import {
-  SESSION_MS, parseRequest, managementOrigin, encryptPayload, callbackUrl,
+  SESSION_MS, parseRequest, managementOrigin, encryptPayload, callbackUrl, checkJsonPassed,
 } from "./protocol.js";
 
 const keyFor = (id) => `login:${id}`;
@@ -70,7 +70,7 @@ async function authorizeJob(id, sender, tabId, allowExpired = false) {
 }
 
 // Runs in the login tab's isolated world, using that page's actual cookie context.
-async function capturePage(check, scope) {
+async function capturePage(check, scope, wantBody) {
   if (location.origin !== new URL(check).origin) return { state: "waiting" };
   let response;
   try {
@@ -84,6 +84,14 @@ async function capturePage(check, scope) {
   if (response.type === "opaqueredirect" || !response.ok || response.redirected) {
     return { state: "waiting", reason: "检查接口未返回 2xx，继续等待登录" };
   }
+  let body;
+  if (wantBody) {
+    try {
+      body = await response.text();
+    } catch {
+      return { state: "waiting", reason: "检查接口响应读取失败" };
+    }
+  }
   try {
     const read = (storage) => Object.fromEntries(
       Array.from({ length: storage.length }, (_, i) => {
@@ -93,6 +101,7 @@ async function capturePage(check, scope) {
     );
     return {
       state: "ready",
+      body,
       local: scope.includes("local") ? read(localStorage) : undefined,
       session: scope.includes("session") ? read(sessionStorage) : undefined,
     };
@@ -112,13 +121,16 @@ async function poll(job) {
   }
   const results = await api.scripting.executeScript({
     target: { tabId: job.loginTabId, frameIds: [0] },
-    func: capturePage, args: [job.check, job.scope],
+    func: capturePage, args: [job.check, job.scope, Boolean(job.checkJson)],
   });
   const snapshot = results[0]?.result;
   if (!snapshot || snapshot.state === "error") {
     throw new Error(snapshot?.reason || "无法读取登录页面");
   }
   if (snapshot.state !== "ready") return { ok: true, ...snapshot };
+  if (!checkJsonPassed(job.checkJson, snapshot.body)) {
+    return { ok: true, state: "waiting", reason: "检查接口返回的登录状态未通过，继续等待登录" };
+  }
   // Confirm that navigation did not change while the check was in flight.
   const current = await api.tabs.get(job.loginTabId);
   if (current.url !== loginTab.url) return { ok: true, state: "waiting" };

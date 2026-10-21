@@ -10,6 +10,36 @@ export function managementOrigin(value) {
   return url.origin;
 }
 
+const MAX_CHECK_BODY = 65_536;
+
+// check_json: { path: "data.code", ok?: [200], fail?: [401] } — 2xx 之外再按 JSON 值判登录。
+export function parseCheckJson(input) {
+  if (input === undefined || input === null) return undefined;
+  const { path, ok, fail } = input;
+  const scalars = (list) => Array.isArray(list) && list.every((v) => ["string", "number", "boolean"].includes(typeof v));
+  if (typeof path !== "string" || !/^[\w-]+(\.[\w-]+)*$/.test(path)) {
+    throw new Error("check_json.path 必须是点号分隔的字段路径");
+  }
+  if ((ok === undefined && fail === undefined) || (ok !== undefined && !scalars(ok)) || (fail !== undefined && !scalars(fail))) {
+    throw new Error("check_json 需要 ok / fail 之一，且为字符串、数字、布尔数组");
+  }
+  return { path, ok, fail };
+}
+
+export function checkJsonPassed(rule, body) {
+  if (!rule) return true;
+  if (typeof body !== "string" || body.length > MAX_CHECK_BODY) return false;
+  let value;
+  try {
+    value = JSON.parse(body);
+    for (const key of rule.path.split(".")) value = value?.[key];
+  } catch {
+    return false;
+  }
+  if (value === undefined || value === null) return false;
+  return (!rule.ok || rule.ok.includes(value)) && !(rule.fail ?? []).includes(value);
+}
+
 export function parseRequest(input, sourceUrl) {
   const origin = managementOrigin(sourceUrl);
   const domain = new URL(`https://${input.domain}`);
@@ -39,6 +69,7 @@ export function parseRequest(input, sourceUrl) {
     domain: domain.hostname,
     scope,
     check: check.href,
+    checkJson: parseCheckJson(input.check_json),
     login: login.href,
     ticket: input.ticket,
     callback: callback.href,
