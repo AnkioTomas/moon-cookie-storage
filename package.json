@@ -1,6 +1,6 @@
 {
   "name": "moon-cookie-storage",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Cross-browser (Chrome / Edge / Firefox) cookie storage extension",
   "type": "module",
   "scripts": {
