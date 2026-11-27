@@ -43,6 +43,9 @@ test("authorized login flow with actual page checker and encrypted callback", as
       const storage = { length: 1, key: () => "token", getItem: () => "storage-secret" };
       globalThis.localStorage = storage;
       globalThis.sessionStorage = storage;
+      Object.defineProperty(globalThis, "navigator", {
+        value: { userAgent: "TestBrowser/1.0" }, configurable: true,
+      });
       return [{ result: await func(...args) }];
     } },
     cookies: {
@@ -87,6 +90,7 @@ test("authorized login flow with actual page checker and encrypted callback", as
     ]).toString());
     assert.equal(payload.ticket, ticket);
     assert.equal(payload.domain, "example.com");
+    assert.equal(payload.ua, "TestBrowser/1.0");
     assert.equal(payload.cookies[0].httpOnly, true);
     assert.equal(payload.cookies[0].value, "cookie-secret");
     assert.deepEqual(payload.local, { token: "storage-secret" });

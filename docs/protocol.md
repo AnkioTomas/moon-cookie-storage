@@ -131,13 +131,15 @@ GET 对完整 Storage 容易超长；服务端也必须配置匹配的 URL 长�
   "domain": "a.com",
   "check": "https://a.com/userinfo.html",
   "capturedAt": "2026-10-17T10:30:00.000Z",
+  "ua": "Mozilla/5.0 (...) Chrome/157.0.0.0 Safari/537.36",
   "cookies": [{"name": "sessionid", "value": "...", "domain": ".a.com", "path": "/", "httpOnly": true}],
   "local": {"token": "..."},
   "session": {"token": "..."}
 }
 ```
 
-未申请的 scope 对应字段不传。服务端验证 ticket/域名/scope、用自己的源接口验证登录态，
+未申请的 scope 对应字段不传。`ua` 是登录页里的 `navigator.userAgent`，总是携带（旧版扩展没有这个字段，服务端要按可选处理），
+供会话绑定 UA 的站点沿用同一 UA 请求。服务端验证 ticket/域名/scope、用自己的源接口验证登录态，
 成功保存后，返回 `Content-Type: application/json` 和：
 
 ```json

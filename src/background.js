@@ -102,6 +102,7 @@ async function capturePage(check, scope, wantBody) {
     return {
       state: "ready",
       body,
+      ua: navigator.userAgent,
       local: scope.includes("local") ? read(localStorage) : undefined,
       session: scope.includes("session") ? read(sessionStorage) : undefined,
     };
@@ -143,7 +144,7 @@ async function poll(job) {
   }
   const payload = {
     v: 1, ticket: job.ticket, domain: job.domain, check: job.check,
-    capturedAt: new Date().toISOString(), cookies,
+    capturedAt: new Date().toISOString(), ua: snapshot.ua, cookies,
     local: snapshot.local, session: snapshot.session,
   };
   const encrypted = await encryptPayload(payload, job.ticket);
